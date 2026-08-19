@@ -91,22 +91,32 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
   return errInfo;
 }
 
-export async function loginWithGoogle(): Promise<User | null> {
+export async function loginWithGoogle(): Promise<{
+  user: User | null;
+  error?: string;
+  errorCode?: string;
+}> {
   try {
     const result = await signInWithPopup(auth, googleProvider);
-    return result.user;
+    return { user: result.user };
   } catch (error) {
     if (error instanceof FirebaseError) {
-      // User simply closed or cancelled the popup dialog
       if (
         error.code === 'auth/popup-closed-by-user' ||
         error.code === 'auth/cancelled-popup-request'
       ) {
-        return null;
+        return { user: null };
       }
+      return {
+        user: null,
+        error: error.message,
+        errorCode: error.code,
+      };
     }
-    console.warn('Google sign-in status:', error);
-    return null;
+    return {
+      user: null,
+      error: error instanceof Error ? error.message : String(error),
+    };
   }
 }
 
