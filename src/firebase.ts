@@ -1,5 +1,13 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, User } from 'firebase/auth';
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signOut,
+  signInAnonymously,
+  onAuthStateChanged,
+  User,
+} from 'firebase/auth';
 import {
   getFirestore,
   doc,
@@ -83,6 +91,17 @@ export async function logoutUser(): Promise<void> {
   }
 }
 
+export async function ensureAuthUser(): Promise<User | null> {
+  if (auth.currentUser) return auth.currentUser;
+  try {
+    const cred = await signInAnonymously(auth);
+    return cred.user;
+  } catch (err) {
+    console.warn('Silent auth fallback:', err);
+    return null;
+  }
+}
+
 export interface FavoriteSong {
   userId: string;
   trackId: string;
@@ -98,8 +117,12 @@ export async function toggleFavorite(song: {
   artistId: 'kk' | 'kishore';
   youtubeId: string;
 }, isFavorited: boolean): Promise<boolean> {
-  if (!auth.currentUser) return false;
-  const userId = auth.currentUser.uid;
+  let user = auth.currentUser;
+  if (!user) {
+    user = await ensureAuthUser();
+  }
+  if (!user) return false;
+  const userId = user.uid;
   const path = `users/${userId}/favorites/${song.id}`;
 
   try {
@@ -145,8 +168,9 @@ export function subscribeToFavorites(
 }
 
 export async function saveUserPreferences(prefs: { defaultStation: 'kk' | 'kishore'; volume: number }) {
-  if (!auth.currentUser) return;
-  const userId = auth.currentUser.uid;
+  const user = auth.currentUser;
+  if (!user) return;
+  const userId = user.uid;
   const path = `users/${userId}/preferences/settings`;
   try {
     await setDoc(doc(db, 'users', userId, 'preferences', 'settings'), {
