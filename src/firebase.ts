@@ -1,4 +1,4 @@
-import { initializeApp } from 'firebase/app';
+import { initializeApp, FirebaseError } from 'firebase/app';
 import {
   getAuth,
   GoogleAuthProvider,
@@ -9,20 +9,38 @@ import {
   User,
 } from 'firebase/auth';
 import {
-  getFirestore,
+  initializeFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager,
   doc,
   setDoc,
   deleteDoc,
   collection,
   onSnapshot,
-  getDocFromServer,
 } from 'firebase/firestore';
 import firebaseConfig from '../firebase-applet-config.json';
 
 const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+
+// Initialize Firestore with resilient persistent multi-tab cache and auto long-polling
+export const db = initializeFirestore(
+  app,
+  {
+    localCache: persistentLocalCache({
+      tabManager: persistentMultipleTabManager(),
+    }),
+    experimentalAutoDetectLongPolling: true,
+  },
+  firebaseConfig.firestoreDatabaseId
+);
+
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
+googleProvider.addScope('email');
+googleProvider.addScope('profile');
+googleProvider.setCustomParameters({
+  prompt: 'select_account',
+});
 
 export enum OperationType {
   CREATE = 'create',
@@ -46,8 +64,20 @@ export interface FirestoreErrorInfo {
 }
 
 export function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
+  const errorMessage = error instanceof Error ? error.message : String(error);
+  
+  // Gracefully handle temporary offline / connectivity latency
+  if (
+    errorMessage.includes('unavailable') ||
+    errorMessage.includes('client is offline') ||
+    errorMessage.includes('network')
+  ) {
+    console.debug('Firestore connectivity status: operating in offline-first mode, sync queued.');
+    return;
+  }
+
   const errInfo: FirestoreErrorInfo = {
-    error: error instanceof Error ? error.message : String(error),
+    error: errorMessage,
     authInfo: {
       userId: auth.currentUser?.uid,
       email: auth.currentUser?.email,
@@ -57,28 +87,25 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
     operationType,
     path,
   };
-  console.error('Firestore Error: ', JSON.stringify(errInfo));
+  console.warn('Firestore notice: ', JSON.stringify(errInfo));
   return errInfo;
 }
-
-// Test connection on boot
-export async function testConnection() {
-  try {
-    await getDocFromServer(doc(db, 'test', 'connection'));
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('the client is offline')) {
-      console.warn('Firebase client is offline or connecting...');
-    }
-  }
-}
-testConnection();
 
 export async function loginWithGoogle(): Promise<User | null> {
   try {
     const result = await signInWithPopup(auth, googleProvider);
     return result.user;
   } catch (error) {
-    console.error('Login error:', error);
+    if (error instanceof FirebaseError) {
+      // User simply closed or cancelled the popup dialog
+      if (
+        error.code === 'auth/popup-closed-by-user' ||
+        error.code === 'auth/cancelled-popup-request'
+      ) {
+        return null;
+      }
+    }
+    console.warn('Google sign-in status:', error);
     return null;
   }
 }
@@ -87,7 +114,7 @@ export async function logoutUser(): Promise<void> {
   try {
     await signOut(auth);
   } catch (error) {
-    console.error('Logout error:', error);
+    console.warn('Logout notice:', error);
   }
 }
 
@@ -97,7 +124,8 @@ export async function ensureAuthUser(): Promise<User | null> {
     const cred = await signInAnonymously(auth);
     return cred.user;
   } catch (err) {
-    console.warn('Silent auth fallback:', err);
+    // Non-blocking fallback
+    console.debug('Anonymous auth note:', err);
     return null;
   }
 }
@@ -207,8 +235,7 @@ export async function updatePresence(
       lastSeen: Date.now(),
     });
   } catch (err) {
-    // Non-blocking
-    console.debug('Presence update suppressed:', err);
+    console.debug('Presence ping note:', err);
   }
 }
 
@@ -244,7 +271,6 @@ export function subscribeToPresence(
         }
       });
 
-      // Guarantee at least current user if listening
       onUpdate({
         onlineCount: Math.max(1, online),
         listeningCount: listening,
