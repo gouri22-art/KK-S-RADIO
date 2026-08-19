@@ -1,0 +1,103 @@
+@import "tailwindcss";
+
+@layer utilities {
+  .font-poster {
+    font-family: 'Syne', 'Anton', sans-serif;
+  }
+  .font-cinzel {
+    font-family: 'Cinzel', serif;
+  }
+  .font-devnagari-bold {
+    font-family: 'Mukta', 'Yatra One', 'Rozha One', sans-serif;
+    font-weight: 800;
+  }
+  .font-editorial {
+    font-family: 'Instrument Serif', 'DM Serif Display', Georgia, serif;
+  }
+  .font-serif-vintage {
+    font-family: 'DM Serif Display', 'Rozha One', Georgia, serif;
+  }
+  .font-mono-retro {
+    font-family: 'Space Mono', 'Courier Prime', monospace;
+  }
+}
+
+/* Subtle Film Grain Noise */
+.film-grain {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
+}
+
+/* Cinematic Vignette Overlay */
+.cinematic-vignette {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(10, 8, 6, 0.02) 0%,
+    rgba(8, 6, 5, 0.25) 60%,
+    rgba(6, 4, 3, 0.75) 100%
+  );
+}
+
+/* Deluxe Saloon Center Title Text Shadow */
+.deluxe-title-shadow {
+  text-shadow: 0 4px 25px rgba(0, 0, 0, 0.6), 0 2px 4px rgba(0, 0, 0, 0.85);
+}
+
+/* Studio Lamp Warm Flicker Animation */
+@keyframes studioFlicker {
+  0%, 100% { opacity: 0.85; transform: scale(1); }
+  25% { opacity: 0.95; transform: scale(1.02); }
+  50% { opacity: 0.8; transform: scale(0.99); }
+  75% { opacity: 0.9; transform: scale(1.01); }
+}
+
+.animate-lamp-flicker {
+  animation: studioFlicker 6s ease-in-out infinite;
+}
+
+/* Stage Light Beam Drift Animation */
+@keyframes stageBeamDrift {
+  0%, 100% { transform: rotate(-3deg) scaleX(1); opacity: 0.25; }
+  50% { transform: rotate(4deg) scaleX(1.1); opacity: 0.45; }
+}
+
+.animate-stage-beam {
+  animation: stageBeamDrift 10s ease-in-out infinite;
+}
+
+/* Ceiling Fan Slow Rotation Animation */
+@keyframes slowFanRotation {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-fan {
+  animation: slowFanRotation 8s linear infinite;
+}
+
+/* Equalizer animations */
+@keyframes eqBar1 {
+  0%, 100% { height: 4px; }
+  50% { height: 16px; }
+}
+@keyframes eqBar2 {
+  0%, 100% { height: 14px; }
+  50% { height: 6px; }
+}
+@keyframes eqBar3 {
+  0%, 100% { height: 8px; }
+  50% { height: 18px; }
+}
+@keyframes eqBar4 {
+  0%, 100% { height: 16px; }
+  50% { height: 4px; }
+}
+@keyframes eqBar5 {
+  0%, 100% { height: 6px; }
+  50% { height: 14px; }
+}
+
+.animate-eq-1 { animation: eqBar1 0.75s ease-in-out infinite; }
+.animate-eq-2 { animation: eqBar2 0.6s ease-in-out infinite; }
+.animate-eq-3 { animation: eqBar3 0.85s ease-in-out infinite; }
+.animate-eq-4 { animation: eqBar4 0.55s ease-in-out infinite; }
+.animate-eq-5 { animation: eqBar5 0.7s ease-in-out infinite; }

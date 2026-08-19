@@ -1,0 +1,6 @@
+{
+  "name": "KK's Radio",
+  "description": "A cinematic full-screen music experience dedicated to KK and Kishore Kumar with floating audio controls.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
