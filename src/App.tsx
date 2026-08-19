@@ -27,6 +27,9 @@ import {
   toggleFavorite,
   subscribeToFavorites,
   saveUserPreferences,
+  updatePresence,
+  removePresence,
+  subscribeToPresence,
   FavoriteSong,
 } from './firebase';
 
@@ -125,57 +128,45 @@ export default function App() {
     isPlayingRef.current = isPlaying;
   }, [isPlaying]);
 
-  // Real-time online listener heartbeat polling
+  // Real-time Firestore live listener & online count synchronization
   useEffect(() => {
     const sessionId = getSessionId();
 
-    const sendHeartbeat = async () => {
-      try {
-        const res = await fetch('/api/presence/heartbeat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            sessionId,
-            isPlaying: isPlayingRef.current,
-            station: selectedStationRef.current,
-          }),
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (data.onlineCount !== undefined) {
-            setOnlineCount(Math.max(1, data.onlineCount));
-          }
-          if (data.listeningCount !== undefined) {
-            setListeningCount(Math.max(isPlayingRef.current ? 1 : 0, data.listeningCount));
-          }
-        }
-      } catch {
-        // Fallback for isolated preview mode
-      }
+    // 1. Listen to real-time presence collection from Firestore
+    const unsub = subscribeToPresence((stats) => {
+      setOnlineCount(stats.onlineCount);
+      setListeningCount(stats.listeningCount);
+    });
+
+    // 2. Publish initial and periodic heartbeat to Firestore
+    const pingPresence = () => {
+      updatePresence(sessionId, isPlayingRef.current, selectedStationRef.current);
     };
 
-    sendHeartbeat();
-    const interval = setInterval(sendHeartbeat, 8000);
+    pingPresence();
+    const interval = setInterval(pingPresence, 12000);
 
     const handleBeforeUnload = () => {
-      try {
-        const payload = JSON.stringify({ sessionId });
-        if (navigator.sendBeacon) {
-          const blob = new Blob([payload], { type: 'application/json' });
-          navigator.sendBeacon('/api/presence/leave', blob);
-        }
-      } catch {
-        // Clean exit
-      }
+      removePresence(sessionId);
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('pagehide', handleBeforeUnload);
 
     return () => {
+      unsub();
       clearInterval(interval);
       window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('pagehide', handleBeforeUnload);
+      removePresence(sessionId);
     };
   }, []);
+
+  // Update presence immediately on play/pause or station change
+  useEffect(() => {
+    const sessionId = getSessionId();
+    updatePresence(sessionId, isPlaying, selectedStation);
+  }, [isPlaying, selectedStation]);
 
   // Live clock ticker
   useEffect(() => {
@@ -693,19 +684,19 @@ export default function App() {
           </span>
         </div>
 
-        {/* Top-Center: Real-Time Live Presence Count (🟢 715 online / live listeners) */}
+        {/* Top-Center: Real-Time Live Presence Count (🟢 Real-time Firestore Count) */}
         <div
           id="realtime-online-badge"
-          className="flex items-center gap-2 px-3 py-1 rounded-full backdrop-blur-md bg-black/45 border border-white/15 text-[11px] sm:text-xs tracking-wider text-white/90 shadow-md"
-          title={`${onlineCount} connected online • ${listeningCount} listening live`}
+          className="flex items-center gap-2 px-3 py-1 rounded-full backdrop-blur-md bg-black/50 border border-white/15 text-[11px] sm:text-xs tracking-wider text-white/90 shadow-md"
+          title={`${onlineCount} connected online • ${listeningCount} listening live right now`}
         >
           <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399] animate-pulse"></span>
           <span className="font-semibold text-emerald-300">
-            {onlineCount > 1 ? `${onlineCount} online` : '715 online'}
+            {onlineCount} {onlineCount === 1 ? 'online' : 'online'}
           </span>
           <span className="text-white/30">•</span>
           <span className="text-white/80">
-            {isPlaying ? `${listeningCount} listening` : 'ON AIR'}
+            {listeningCount > 0 ? `${listeningCount} listening live` : 'ON AIR'}
           </span>
         </div>
 

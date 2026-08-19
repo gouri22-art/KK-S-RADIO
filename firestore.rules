@@ -36,6 +36,20 @@ service cloud.firestore {
              data.volume is number && data.volume >= 0 && data.volume <= 1;
     }
 
+    function isValidPresence(data) {
+      return data.sessionId is string && data.sessionId.size() <= 128 &&
+             data.isPlaying is bool &&
+             data.station is string && (data.station == 'kk' || data.station == 'kishore') &&
+             data.lastSeen is number;
+    }
+
+    // Presence collection for real-time listener counter
+    match /presence/{sessionId} {
+      allow read: if true;
+      allow delete: if isValidId(sessionId);
+      allow create, update: if isValidId(sessionId) && isValidPresence(request.resource.data);
+    }
+
     // User subcollections
     match /users/{userId}/favorites/{trackId} {
       allow read, delete: if isOwner(userId);

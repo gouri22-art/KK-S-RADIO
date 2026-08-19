@@ -184,5 +184,77 @@ export async function saveUserPreferences(prefs: { defaultStation: 'kk' | 'kisho
   }
 }
 
+// Presence session interface
+export interface PresenceSession {
+  sessionId: string;
+  isPlaying: boolean;
+  station: 'kk' | 'kishore';
+  lastSeen: number;
+}
+
+// Update presence in Firestore
+export async function updatePresence(
+  sessionId: string,
+  isPlaying: boolean,
+  station: 'kk' | 'kishore'
+): Promise<void> {
+  const path = `presence/${sessionId}`;
+  try {
+    await setDoc(doc(db, 'presence', sessionId), {
+      sessionId,
+      isPlaying,
+      station,
+      lastSeen: Date.now(),
+    });
+  } catch (err) {
+    // Non-blocking
+    console.debug('Presence update suppressed:', err);
+  }
+}
+
+// Remove presence on exit
+export async function removePresence(sessionId: string): Promise<void> {
+  try {
+    await deleteDoc(doc(db, 'presence', sessionId));
+  } catch {
+    // Silently ignore on unload
+  }
+}
+
+// Real-time Firestore presence subscription for live listener & online count
+export function subscribeToPresence(
+  onUpdate: (stats: { onlineCount: number; listeningCount: number }) => void
+) {
+  const colRef = collection(db, 'presence');
+  return onSnapshot(
+    colRef,
+    (snapshot) => {
+      const now = Date.now();
+      const cutoff = now - 35000; // active within last 35 seconds
+      let online = 0;
+      let listening = 0;
+
+      snapshot.forEach((docSnap) => {
+        const data = docSnap.data() as PresenceSession;
+        if (data.lastSeen && data.lastSeen >= cutoff) {
+          online++;
+          if (data.isPlaying) {
+            listening++;
+          }
+        }
+      });
+
+      // Guarantee at least current user if listening
+      onUpdate({
+        onlineCount: Math.max(1, online),
+        listeningCount: listening,
+      });
+    },
+    (err) => {
+      handleFirestoreError(err, OperationType.GET, 'presence');
+    }
+  );
+}
+
 export { onAuthStateChanged };
 export type { User };

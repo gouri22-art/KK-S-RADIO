@@ -55,6 +55,30 @@
         }
       },
       "required": ["userId", "defaultStation", "volume", "updatedAt"]
+    },
+    "presenceSession": {
+      "title": "Presence Session",
+      "description": "Real-time active listener heartbeat session",
+      "type": "object",
+      "properties": {
+        "sessionId": {
+          "type": "string",
+          "description": "Session identifier"
+        },
+        "isPlaying": {
+          "type": "boolean",
+          "description": "Whether user is actively playing radio audio"
+        },
+        "station": {
+          "type": "string",
+          "description": "Active radio station"
+        },
+        "lastSeen": {
+          "type": "number",
+          "description": "Epoch timestamp in milliseconds"
+        }
+      },
+      "required": ["sessionId", "isPlaying", "station", "lastSeen"]
     }
   },
   "firestore": {
@@ -65,6 +89,10 @@
     "/users/{userId}/preferences/settings": {
       "schema": "userPreference",
       "description": "User application settings and preferences"
+    },
+    "/presence/{sessionId}": {
+      "schema": "presenceSession",
+      "description": "Real-time active online presence collection for live listener count"
     }
   }
 }
