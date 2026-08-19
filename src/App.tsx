@@ -12,9 +12,23 @@ import {
   Volume2,
   VolumeX,
   Sparkles,
+  Heart,
+  User as UserIcon,
+  LogOut,
 } from 'lucide-react';
 import { YouTubeTrackInfo, YTPlayerInstance } from './types';
 import realisticSceneBg from './assets/images/kks_radio_realistic_scene_1787147575287.jpg';
+import {
+  auth,
+  loginWithGoogle,
+  logoutUser,
+  onAuthStateChanged,
+  User,
+  toggleFavorite,
+  subscribeToFavorites,
+  saveUserPreferences,
+  FavoriteSong,
+} from './firebase';
 
 type StationKey = 'kk' | 'kishore';
 
@@ -87,6 +101,10 @@ export default function App() {
   // Real-time online & listening presence count
   const [onlineCount, setOnlineCount] = useState<number>(1);
   const [listeningCount, setListeningCount] = useState<number>(1);
+
+  // Firebase Auth & Realtime Firestore State
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [favorites, setFavorites] = useState<Record<string, FavoriteSong>>({});
 
   // Mouse Parallax coordinates for depth
   const [parallax, setParallax] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -523,6 +541,57 @@ export default function App() {
     }
   };
 
+  // Firebase Auth State Listener
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (user) => {
+      setCurrentUser(user);
+    });
+    return () => unsub();
+  }, []);
+
+  // Real-time Firestore Favorites Sync for Authenticated User
+  useEffect(() => {
+    if (!currentUser) {
+      setFavorites({});
+      return;
+    }
+    const unsub = subscribeToFavorites(currentUser.uid, (favs) => {
+      setFavorites(favs);
+    });
+    return () => unsub();
+  }, [currentUser]);
+
+  // Sync Preferences to Firestore when User is Authenticated
+  useEffect(() => {
+    if (currentUser) {
+      saveUserPreferences({
+        defaultStation: selectedStation,
+        volume: volume / 100,
+      });
+    }
+  }, [currentUser, selectedStation, volume]);
+
+  const currentTrackId = currentTrack.videoId || `${selectedStation}_${currentTrackIndex}`;
+  const isCurrentTrackFavorited = Boolean(favorites[currentTrackId]);
+
+  // Toggle Favorite in Firestore
+  const handleToggleFavorite = async () => {
+    playClickSound();
+    if (!currentUser) {
+      await loginWithGoogle();
+      return;
+    }
+    await toggleFavorite(
+      {
+        id: currentTrackId,
+        title: currentTrack.title || (selectedStation === 'kk' ? 'KK Classics' : 'Kishore Classics'),
+        artistId: selectedStation,
+        youtubeId: currentTrack.videoId,
+      },
+      isCurrentTrackFavorited
+    );
+  };
+
   // STATION SELECTOR: KISHORE
   const handleSelectKishore = () => {
     playClickSound();
@@ -640,8 +709,48 @@ export default function App() {
           </span>
         </div>
 
-        {/* Top-Right: Station Switch Pills */}
+        {/* Top-Right: Station Switch Pills + Google Auth Profile */}
         <div className="flex items-center gap-2">
+          {currentUser ? (
+            <div
+              id="user-profile-badge"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full backdrop-blur-md bg-black/50 border border-white/20 text-xs text-white shadow-sm"
+              title={`Logged in as ${currentUser.displayName || currentUser.email || 'User'}`}
+            >
+              {currentUser.photoURL ? (
+                <img
+                  src={currentUser.photoURL}
+                  alt="Profile"
+                  referrerPolicy="no-referrer"
+                  className="w-4.5 h-4.5 rounded-full border border-white/40 object-cover"
+                />
+              ) : (
+                <UserIcon className="w-3.5 h-3.5 text-amber-400" />
+              )}
+              <span className="hidden sm:inline font-medium text-[11px] max-w-[90px] truncate text-white/90">
+                {currentUser.displayName?.split(' ')[0] || 'User'}
+              </span>
+              <button
+                id="btn-logout"
+                onClick={() => logoutUser()}
+                title="Sign out"
+                className="cursor-pointer text-white/40 hover:text-rose-400 transition-colors p-0.5"
+              >
+                <LogOut className="w-3 h-3" />
+              </button>
+            </div>
+          ) : (
+            <button
+              id="btn-google-login"
+              onClick={() => loginWithGoogle()}
+              className="cursor-pointer px-2.5 py-1 rounded-full text-[11px] sm:text-xs font-medium transition-all backdrop-blur-md flex items-center gap-1.5 shadow-sm bg-black/40 hover:bg-black/60 text-white/90 border border-white/15 hover:border-white/30"
+              title="Sign in with Google to sync favorites & settings"
+            >
+              <UserIcon className="w-3 h-3 text-amber-400" />
+              <span className="hidden sm:inline">Sign In</span>
+            </button>
+          )}
+
           <button
             id="btn-switch-kk"
             onClick={handleSelectKK}
@@ -793,8 +902,32 @@ export default function App() {
             </div>
           </div>
 
-          {/* RIGHT: Modern Clean Controls (Prev, Large Play/Pause, Next, Volume) */}
+          {/* RIGHT: Modern Clean Controls (Favorite, Prev, Large Play/Pause, Next, Volume) */}
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            {/* Heart / Favorite Track Button */}
+            <button
+              id="player-btn-favorite"
+              onClick={handleToggleFavorite}
+              title={
+                currentUser
+                  ? isCurrentTrackFavorited
+                    ? 'Remove from Favorites'
+                    : 'Add to Favorites'
+                  : 'Sign in to save favorite tracks'
+              }
+              className={`p-1.5 transition-all active:scale-90 cursor-pointer ${
+                isCurrentTrackFavorited
+                  ? 'text-rose-500 hover:text-rose-400 drop-shadow-[0_0_8px_rgba(244,63,94,0.6)]'
+                  : 'text-white/60 hover:text-white'
+              }`}
+            >
+              <Heart
+                className={`w-4 h-4 sm:w-4.5 sm:h-4.5 transition-transform ${
+                  isCurrentTrackFavorited ? 'fill-rose-500 scale-110' : 'hover:scale-105'
+                }`}
+              />
+            </button>
+
             {/* Previous Track */}
             <button
               id="player-btn-prev"

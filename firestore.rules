@@ -1,0 +1,52 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Hardened Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidFavorite(data, userId) {
+      return data.userId == userId &&
+             data.userId == request.auth.uid &&
+             data.trackId is string && data.trackId.size() <= 128 &&
+             data.title is string && data.title.size() <= 256 &&
+             data.artistId is string && (data.artistId == 'kk' || data.artistId == 'kishore') &&
+             data.youtubeId is string && data.youtubeId.size() <= 64;
+    }
+
+    function isValidPreference(data, userId) {
+      return data.userId == userId &&
+             data.userId == request.auth.uid &&
+             data.defaultStation is string && (data.defaultStation == 'kk' || data.defaultStation == 'kishore') &&
+             data.volume is number && data.volume >= 0 && data.volume <= 1;
+    }
+
+    // User subcollections
+    match /users/{userId}/favorites/{trackId} {
+      allow read, delete: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidId(trackId) && isValidFavorite(request.resource.data, userId);
+      allow update: if isOwner(userId) && isValidId(trackId) && isValidFavorite(request.resource.data, userId);
+    }
+
+    match /users/{userId}/preferences/{docId} {
+      allow read, delete: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidId(docId) && isValidPreference(request.resource.data, userId);
+      allow update: if isOwner(userId) && isValidId(docId) && isValidPreference(request.resource.data, userId);
+    }
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "entities": {
+    "favoriteTrack": {
+      "title": "Favorite Track",
+      "description": "A user's saved favorite song on KK's Radio",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "UID of the user who favorited the track"
+        },
+        "trackId": {
+          "type": "string",
+          "description": "Identifier of the song"
+        },
+        "title": {
+          "type": "string",
+          "description": "Song title"
+        },
+        "artistId": {
+          "type": "string",
+          "description": "Artist station: kk or kishore"
+        },
+        "youtubeId": {
+          "type": "string",
+          "description": "YouTube video ID"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when added"
+        }
+      },
+      "required": ["userId", "trackId", "title", "artistId", "youtubeId", "createdAt"]
+    },
+    "userPreference": {
+      "title": "User Preference",
+      "description": "User preferences for playback and station choice",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "UID of the user"
+        },
+        "defaultStation": {
+          "type": "string",
+          "description": "Default radio station (kk or kishore)"
+        },
+        "volume": {
+          "type": "number",
+          "description": "Preferred volume level (0 to 1)"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp when updated"
+        }
+      },
+      "required": ["userId", "defaultStation", "volume", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}/favorites/{trackId}": {
+      "schema": "favoriteTrack",
+      "description": "Collection of favorite tracks per user"
+    },
+    "/users/{userId}/preferences/settings": {
+      "schema": "userPreference",
+      "description": "User application settings and preferences"
+    }
+  }
+}
