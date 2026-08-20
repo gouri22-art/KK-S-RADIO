@@ -652,7 +652,7 @@ export default function App() {
       ref={containerRef}
       onMouseMove={handleMouseMove}
       id="app-container"
-      className="relative h-screen w-full bg-[#0a0705] text-[#f7f2ea] select-none overflow-hidden film-grain flex flex-col justify-between items-center p-3 sm:p-6"
+      className="relative min-h-[100dvh] h-[100dvh] w-full bg-[#0a0705] text-[#f7f2ea] select-none overflow-hidden film-grain flex flex-col justify-between items-center p-2 sm:p-4 md:p-6"
     >
       {/* 1. ULTRA-REALISTIC CINEMATIC 35MM INDIAN MUSIC CAFÉ & STREET SCENE */}
       <div
@@ -687,14 +687,14 @@ export default function App() {
 
         {/* Animated Studio Lamp Warm Breathing Glow */}
         <div
-          className={`absolute top-[32%] left-[20%] w-80 h-80 rounded-full bg-amber-500/15 blur-[90px] pointer-events-none transition-opacity duration-1000 animate-lamp-flicker ${
+          className={`absolute top-[32%] left-[20%] w-60 sm:w-80 h-60 sm:h-80 rounded-full bg-amber-500/15 blur-[80px] pointer-events-none transition-opacity duration-1000 animate-lamp-flicker ${
             selectedStation === 'kishore' ? 'opacity-100' : 'opacity-40'
           }`}
         ></div>
 
         {/* Animated Stage Light Beam Drift */}
         <div
-          className={`absolute -top-[10%] right-[18%] w-84 h-[120%] bg-gradient-to-b from-amber-400/15 via-sky-400/8 to-transparent blur-[70px] pointer-events-none transition-opacity duration-1000 animate-stage-beam origin-top ${
+          className={`absolute -top-[10%] right-[18%] w-64 sm:w-84 h-[120%] bg-gradient-to-b from-amber-400/15 via-sky-400/8 to-transparent blur-[60px] pointer-events-none transition-opacity duration-1000 animate-stage-beam origin-top ${
             selectedStation === 'kk' ? 'opacity-100' : 'opacity-35'
           }`}
         ></div>
@@ -709,40 +709,45 @@ export default function App() {
         className="absolute inset-0 w-full h-full pointer-events-none z-10"
       />
 
-      {/* 3. TOP BAR (DELUXE SALOON STYLE WITH LIVE ONLINE PRESENCE) */}
+      {/* 3. RESPONSIVE TOP BAR (MOBILE / TABLET / DESKTOP OPTIMIZED) */}
       <header
         id="top-minimal-bar"
-        className="relative z-20 w-full max-w-7xl flex items-center justify-between text-xs sm:text-sm font-mono-retro text-[#faf4eb] select-none px-2"
+        className="relative z-20 w-full max-w-7xl flex flex-wrap sm:flex-nowrap items-center justify-between gap-1.5 sm:gap-2 text-xs sm:text-sm font-mono-retro text-[#faf4eb] select-none px-1 sm:px-2 pt-1 sm:pt-0"
       >
-        {/* Top-Left: Real Time (e.g. 1:12 PM) */}
-        <div className="flex items-center gap-2">
-          <span className="font-semibold text-xs sm:text-sm tracking-wider text-white/90 drop-shadow-sm">
+        {/* Left / Center Area: Time + Online Presence Badge */}
+        <div className="flex items-center gap-1.5 sm:gap-2.5">
+          {/* Real Time (e.g. 1:12 PM) */}
+          <span className="hidden xs:inline font-semibold text-[11px] sm:text-xs md:text-sm tracking-wider text-white/90 drop-shadow-sm px-2 py-0.5 rounded-full bg-black/40 border border-white/10 sm:border-transparent sm:bg-transparent">
             {currentTimeStr}
           </span>
+
+          {/* Real-Time Live Presence Count (🟢 Real-time Firestore Count) */}
+          <div
+            id="realtime-online-badge"
+            className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full backdrop-blur-md bg-black/55 border border-white/15 text-[10px] sm:text-xs tracking-wider text-white/90 shadow-md"
+            title={`${onlineCount} connected online • ${listeningCount} listening live right now`}
+          >
+            <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399] animate-pulse"></span>
+            <span className="font-semibold text-emerald-300">
+              {onlineCount} <span className="hidden xs:inline">online</span>
+            </span>
+            <span className="text-white/30">•</span>
+            <span className="text-white/80">
+              {listeningCount > 0 ? (
+                <span>{listeningCount} <span className="hidden sm:inline">listening live</span><span className="sm:hidden">live</span></span>
+              ) : (
+                'ON AIR'
+              )}
+            </span>
+          </div>
         </div>
 
-        {/* Top-Center: Real-Time Live Presence Count (🟢 Real-time Firestore Count) */}
-        <div
-          id="realtime-online-badge"
-          className="flex items-center gap-2 px-3 py-1 rounded-full backdrop-blur-md bg-black/50 border border-white/15 text-[11px] sm:text-xs tracking-wider text-white/90 shadow-md"
-          title={`${onlineCount} connected online • ${listeningCount} listening live right now`}
-        >
-          <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399] animate-pulse"></span>
-          <span className="font-semibold text-emerald-300">
-            {onlineCount} {onlineCount === 1 ? 'online' : 'online'}
-          </span>
-          <span className="text-white/30">•</span>
-          <span className="text-white/80">
-            {listeningCount > 0 ? `${listeningCount} listening live` : 'ON AIR'}
-          </span>
-        </div>
-
-        {/* Top-Right: Station Switch Pills + Google Auth Profile */}
-        <div className="flex items-center gap-2">
+        {/* Right Area: Station Switch Pills + Google Auth Profile */}
+        <div className="flex items-center gap-1.5 sm:gap-2 ml-auto sm:ml-0">
           {currentUser ? (
             <div
               id="user-profile-badge"
-              className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 rounded-full backdrop-blur-md bg-black/60 border border-emerald-500/30 text-xs text-white shadow-sm"
+              className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 rounded-full backdrop-blur-md bg-black/60 border border-emerald-500/30 text-xs text-white shadow-sm"
               title={`Signed in with Google: ${currentUser.email || currentUser.displayName || 'User'}`}
             >
               {currentUser.photoURL ? (
@@ -750,32 +755,32 @@ export default function App() {
                   src={currentUser.photoURL}
                   alt="Profile"
                   referrerPolicy="no-referrer"
-                  className="w-4.5 h-4.5 rounded-full border border-emerald-400/60 object-cover"
+                  className="w-4 h-4 rounded-full border border-emerald-400/60 object-cover"
                 />
               ) : (
-                <UserIcon className="w-3.5 h-3.5 text-emerald-400" />
+                <UserIcon className="w-3 h-3 text-emerald-400" />
               )}
-              <span className="font-medium text-[11px] sm:text-xs max-w-[85px] sm:max-w-[130px] truncate text-white/95">
-                {currentUser.displayName || currentUser.email?.split('@')[0] || 'User'}
+              <span className="font-medium text-[10px] sm:text-xs max-w-[65px] xs:max-w-[85px] sm:max-w-[120px] truncate text-white/95">
+                {currentUser.displayName?.split(' ')[0] || currentUser.email?.split('@')[0] || 'User'}
               </span>
               <button
                 id="btn-logout"
                 onClick={() => logoutUser()}
                 title="Sign out of Google account"
-                className="cursor-pointer text-white/50 hover:text-rose-400 transition-colors p-0.5 ml-0.5"
+                className="cursor-pointer text-white/50 hover:text-rose-400 transition-colors p-0.5"
               >
-                <LogOut className="w-3 h-3" />
+                <LogOut className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
               </button>
             </div>
           ) : (
             <button
               id="btn-google-login"
               onClick={handleGoogleLogin}
-              className="cursor-pointer px-3 py-1 rounded-full text-[11px] sm:text-xs font-medium transition-all backdrop-blur-md flex items-center gap-1.5 shadow-sm bg-white/10 hover:bg-white/20 text-white border border-white/25 hover:border-white/50 active:scale-95"
+              className="cursor-pointer px-2.5 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-medium transition-all backdrop-blur-md flex items-center gap-1.5 shadow-sm bg-white/10 hover:bg-white/20 text-white border border-white/25 hover:border-white/50 active:scale-95"
               title="Sign in with Google / Gmail to save your favorites and sync across devices"
             >
               {/* Google multicolor G logo */}
-              <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24">
+              <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" viewBox="0 0 24 24">
                 <path
                   fill="#4285F4"
                   d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -793,14 +798,15 @@ export default function App() {
                   d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
                 />
               </svg>
-              <span className="tracking-wide">Sign in with Google</span>
+              <span className="tracking-wide hidden xs:inline">Sign In</span>
+              <span className="tracking-wide hidden md:inline">with Google</span>
             </button>
           )}
 
           <button
             id="btn-switch-kk"
             onClick={handleSelectKK}
-            className={`cursor-pointer px-3 py-1 rounded-full text-xs font-medium transition-all backdrop-blur-md flex items-center gap-1.5 shadow-sm ${
+            className={`cursor-pointer px-2.5 sm:px-3 py-1 rounded-full text-[11px] sm:text-xs font-medium transition-all backdrop-blur-md flex items-center gap-1 sm:gap-1.5 shadow-sm ${
               selectedStation === 'kk'
                 ? 'bg-emerald-600/85 text-white border border-emerald-400/50 shadow-[0_0_12px_rgba(16,185,129,0.3)]'
                 : 'bg-black/40 text-white/70 hover:text-white border border-white/10 hover:bg-black/60'
@@ -817,7 +823,7 @@ export default function App() {
           <button
             id="btn-switch-kishore"
             onClick={handleSelectKishore}
-            className={`cursor-pointer px-3 py-1 rounded-full text-xs font-medium transition-all backdrop-blur-md flex items-center gap-1.5 shadow-sm ${
+            className={`cursor-pointer px-2.5 sm:px-3 py-1 rounded-full text-[11px] sm:text-xs font-medium transition-all backdrop-blur-md flex items-center gap-1 sm:gap-1.5 shadow-sm ${
               selectedStation === 'kishore'
                 ? 'bg-amber-600/85 text-white border border-amber-400/50 shadow-[0_0_12px_rgba(245,158,11,0.3)]'
                 : 'bg-black/40 text-white/70 hover:text-white border border-white/10 hover:bg-black/60'
@@ -833,15 +839,15 @@ export default function App() {
         </div>
       </header>
 
-      {/* 4. CENTER HERO: ICONIC DEVANAGARI & ENGLISH DISPLAY TITLE */}
+      {/* 4. CENTER HERO: ICONIC DEVANAGARI & ENGLISH DISPLAY TITLE (RESPONSIVE SCALING) */}
       <section
         id="hero-center-section"
-        className="relative z-10 my-auto flex flex-col items-center justify-center text-center px-4 max-w-4xl"
+        className="relative z-10 my-auto flex flex-col items-center justify-center text-center px-2 sm:px-4 max-w-4xl w-full py-1 sm:py-3"
       >
         {/* ICONIC DEVANAGARI TITLE */}
         <h1
           id="main-devnagari-title"
-          className="font-devnagari-bold text-6xl sm:text-8xl md:text-9xl lg:text-[8.5rem] font-extrabold uppercase text-white tracking-tight leading-[0.88] deluxe-title-shadow select-none drop-shadow-[0_10px_25px_rgba(0,0,0,0.85)]"
+          className="font-devnagari-bold text-5xl xs:text-6xl sm:text-7xl md:text-8xl lg:text-[8.5rem] font-extrabold uppercase text-white tracking-tight leading-[0.88] deluxe-title-shadow select-none drop-shadow-[0_10px_25px_rgba(0,0,0,0.85)]"
         >
           <span>केके'स</span>
           <br />
@@ -851,38 +857,38 @@ export default function App() {
         {/* SUB-TRACKED ENGLISH LINE */}
         <div
           id="hero-subtitle-bar"
-          className="mt-3 sm:mt-4 text-[10px] sm:text-xs md:text-sm font-mono-retro uppercase tracking-[0.35em] text-[#faf4eb]/90 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]"
+          className="mt-2 sm:mt-4 text-[9px] xs:text-[10px] sm:text-xs md:text-sm font-mono-retro uppercase tracking-[0.2em] sm:tracking-[0.35em] text-[#faf4eb]/90 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] max-w-full px-2"
         >
           K K ' S &nbsp; R A D I O &nbsp; • &nbsp; K K &nbsp; × &nbsp; K I S H O R E &nbsp; K U M A R
         </div>
 
         {/* FLOATING ACTION PILLS */}
-        <div className="mt-5 sm:mt-6 flex flex-col items-center gap-2.5 w-full max-w-md">
+        <div className="mt-3 sm:mt-5 flex flex-col items-center gap-2 sm:gap-2.5 w-full max-w-xs sm:max-w-md">
           {/* Tribute / Fresh Songs Community Pill */}
           <div
             id="tribute-community-pill"
-            className="w-full backdrop-blur-xl bg-black/60 border border-white/15 rounded-2xl px-4 py-2 flex items-center justify-between gap-3 shadow-xl transition-all hover:bg-black/70"
+            className="w-full backdrop-blur-xl bg-black/60 border border-white/15 rounded-2xl px-3 sm:px-4 py-1.5 sm:py-2 flex items-center justify-between gap-2 sm:gap-3 shadow-xl transition-all hover:bg-black/70"
           >
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-8 h-8 rounded-full bg-emerald-500/90 flex items-center justify-center text-white shrink-0 shadow-md">
-                <Sparkles className="w-4 h-4" />
+            <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-emerald-500/90 flex items-center justify-center text-white shrink-0 shadow-md">
+                <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </div>
               <div className="flex flex-col text-left min-w-0">
-                <span className="text-xs font-bold text-white truncate flex items-center gap-1">
-                  <span>KK × Kishore Nostalgia Radio</span>
+                <span className="text-[11px] sm:text-xs font-bold text-white truncate flex items-center gap-1">
+                  <span>KK × Kishore Nostalgia</span>
                   <span>🔥</span>
                 </span>
-                <span className="text-[10px] text-white/70 truncate font-mono-retro">
+                <span className="text-[9px] sm:text-[10px] text-white/70 truncate font-mono-retro">
                   {selectedStation === 'kk'
-                    ? 'Tuned to KK special — timeless voice'
-                    : 'Tuned to Kishore Kumar — golden Bollywood'}
+                    ? 'Tuned to KK special'
+                    : 'Tuned to Kishore Kumar'}
                 </span>
               </div>
             </div>
 
             <button
               onClick={selectedStation === 'kk' ? handleSelectKishore : handleSelectKK}
-              className="cursor-pointer px-3 py-1 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold transition-all shadow-md shrink-0 active:scale-95"
+              className="cursor-pointer px-2.5 sm:px-3 py-1 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black text-[11px] sm:text-xs font-bold transition-all shadow-md shrink-0 active:scale-95"
             >
               {selectedStation === 'kk' ? 'Switch Kishore' : 'Switch KK'}
             </button>
@@ -890,19 +896,19 @@ export default function App() {
         </div>
       </section>
 
-      {/* 5. FLOATING HORIZONTAL MUSIC PLAYER */}
+      {/* 5. FLOATING HORIZONTAL MUSIC PLAYER (RESPONSIVE DOCK FOR MOBILE / TABLET / DESKTOP) */}
       <footer
         id="floating-player-wrapper"
-        className="relative z-20 w-full max-w-2xl mb-1 sm:mb-2 px-2 flex flex-col items-center gap-2"
+        className="relative z-20 w-full max-w-3xl mb-1 sm:mb-2 px-1 sm:px-2 flex flex-col items-center gap-1.5 sm:gap-2 pb-[max(env(safe-area-inset-bottom),0.25rem)]"
       >
         <div
           id="player-dock"
-          className="w-full backdrop-blur-2xl bg-[#140e0b]/85 border border-white/15 rounded-full px-4 sm:px-6 py-3 shadow-[0_20px_50px_rgba(0,0,0,0.85)] flex items-center justify-between gap-3 sm:gap-5 relative"
+          className="w-full backdrop-blur-2xl bg-[#140e0b]/90 border border-white/15 rounded-2xl sm:rounded-full px-3 sm:px-5 md:px-6 py-2.5 sm:py-3 shadow-[0_20px_50px_rgba(0,0,0,0.85)] flex items-center justify-between gap-2 sm:gap-4 relative"
         >
           {/* LEFT: Album Thumbnail + Title + Station Subtitle + Time Progress */}
-          <div className="flex items-center gap-3 min-w-0 flex-1">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
             {/* Circular Album Art */}
-            <div className="relative w-10 h-10 sm:w-11 sm:h-11 rounded-full overflow-hidden shrink-0 border border-white/20 shadow-md bg-stone-900">
+            <div className="relative w-9 h-9 sm:w-11 sm:h-11 rounded-full overflow-hidden shrink-0 border border-white/20 shadow-md bg-stone-900">
               <img
                 src={STATIONS[selectedStation].thumb}
                 alt="Track art"
@@ -911,14 +917,14 @@ export default function App() {
                 }`}
               />
               {/* Center disc spindle dot */}
-              <div className="absolute inset-0 m-auto w-2.5 h-2.5 rounded-full bg-black border border-white/40"></div>
+              <div className="absolute inset-0 m-auto w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-black border border-white/40"></div>
             </div>
 
             {/* Track Info & Scrubber */}
             <div className="min-w-0 flex flex-col flex-1">
               <span
                 id="player-track-title"
-                className="text-xs sm:text-sm font-bold text-white truncate tracking-tight"
+                className="text-xs sm:text-sm font-bold text-white truncate tracking-tight max-w-[130px] xs:max-w-[170px] sm:max-w-[260px] md:max-w-[340px]"
                 title={currentTrack.title}
               >
                 {currentTrack.title ||
@@ -928,20 +934,20 @@ export default function App() {
               </span>
               <span
                 id="player-station-subtitle"
-                className="text-[10px] sm:text-[11px] text-white/60 truncate font-mono-retro"
+                className="text-[9px] sm:text-[11px] text-white/60 truncate font-mono-retro"
               >
                 KK's Radio • {selectedStation === 'kk' ? 'KK' : 'Kishore Kumar'}
               </span>
 
               {/* Progress bar + Timestamps */}
-              <div className="flex items-center gap-2 mt-1 w-full max-w-[220px]">
+              <div className="flex items-center gap-1.5 sm:gap-2 mt-0.5 sm:mt-1 w-full max-w-[130px] xs:max-w-[170px] sm:max-w-[220px]">
                 <div className="h-1 flex-1 bg-white/15 rounded-full overflow-hidden relative">
                   <div
                     className="h-full bg-gradient-to-r from-white/90 to-white transition-all duration-300 rounded-full"
                     style={{ width: `${trackProgress}%` }}
                   ></div>
                 </div>
-                <span className="text-[9px] font-mono-retro text-white/50 shrink-0">
+                <span className="text-[8px] sm:text-[9px] font-mono-retro text-white/50 shrink-0">
                   {formatTime(currentTimeSec)} / {formatTime(durationSec)}
                 </span>
               </div>
@@ -949,7 +955,7 @@ export default function App() {
           </div>
 
           {/* RIGHT: Modern Clean Controls (Favorite, Prev, Large Play/Pause, Next, Volume) */}
-          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          <div className="flex items-center gap-1 sm:gap-2 md:gap-3 shrink-0">
             {/* Heart / Favorite Track Button */}
             <button
               id="player-btn-favorite"
@@ -961,7 +967,7 @@ export default function App() {
                     : 'Add to Favorites'
                   : 'Sign in to save favorite tracks'
               }
-              className={`p-1.5 transition-all active:scale-90 cursor-pointer ${
+              className={`p-1.5 sm:p-2 transition-all active:scale-90 cursor-pointer ${
                 isCurrentTrackFavorited
                   ? 'text-rose-500 hover:text-rose-400 drop-shadow-[0_0_8px_rgba(244,63,94,0.6)]'
                   : 'text-white/60 hover:text-white'
@@ -980,9 +986,9 @@ export default function App() {
               onClick={handlePrev}
               disabled={!isPlayerReady}
               title="Previous Track"
-              className="p-1.5 text-white/70 hover:text-white active:scale-95 transition-all cursor-pointer disabled:opacity-30"
+              className="p-1.5 sm:p-2 text-white/70 hover:text-white active:scale-95 transition-all cursor-pointer disabled:opacity-30"
             >
-              <SkipBack className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
+              <SkipBack className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
 
             {/* Large White Circular Play / Pause Button */}
@@ -991,12 +997,12 @@ export default function App() {
               onClick={handleTogglePlay}
               disabled={!isPlayerReady}
               title={isPlaying ? 'Pause' : 'Play'}
-              className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white text-black flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition-all cursor-pointer disabled:opacity-30"
+              className="w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-white text-black flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition-all cursor-pointer disabled:opacity-30 shrink-0"
             >
               {isPlaying ? (
-                <Pause className="w-5 h-5 fill-black" />
+                <Pause className="w-4 h-4 sm:w-5 sm:h-5 fill-black" />
               ) : (
-                <Play className="w-5 h-5 fill-black ml-0.5" />
+                <Play className="w-4 h-4 sm:w-5 sm:h-5 fill-black ml-0.5" />
               )}
             </button>
 
@@ -1006,35 +1012,35 @@ export default function App() {
               onClick={handleNext}
               disabled={!isPlayerReady}
               title="Next Track"
-              className="p-1.5 text-white/70 hover:text-white active:scale-95 transition-all cursor-pointer disabled:opacity-30"
+              className="p-1.5 sm:p-2 text-white/70 hover:text-white active:scale-95 transition-all cursor-pointer disabled:opacity-30"
             >
-              <SkipForward className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
+              <SkipForward className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
 
             {/* Volume Toggle & Slider */}
-            <div className="hidden sm:flex items-center gap-1.5 pl-1">
+            <div className="flex items-center gap-1 sm:gap-1.5 pl-0.5 sm:pl-1">
               <button
                 id="player-btn-mute"
                 onClick={handleToggleMute}
                 disabled={!isPlayerReady}
                 title={isMuted ? 'Unmute' : 'Mute'}
-                className="p-1 text-white/70 hover:text-white transition-all cursor-pointer disabled:opacity-30"
+                className="p-1.5 text-white/70 hover:text-white transition-all cursor-pointer disabled:opacity-30"
               >
                 {isMuted ? (
-                  <VolumeX className="w-4 h-4 text-red-400" />
+                  <VolumeX className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-red-400" />
                 ) : (
-                  <Volume2 className="w-4 h-4" />
+                  <Volume2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 )}
               </button>
 
-              {/* Volume Slider Bar */}
+              {/* Volume Slider Bar (hidden on compact mobile, shown on tablet/desktop) */}
               <input
                 type="range"
                 min="0"
                 max="100"
                 value={isMuted ? 0 : volume}
                 onChange={handleVolumeChange}
-                className="w-16 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer accent-white"
+                className="hidden sm:inline-block w-14 md:w-20 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer accent-white"
                 title={`Volume: ${isMuted ? 0 : volume}%`}
               />
             </div>
@@ -1042,7 +1048,7 @@ export default function App() {
         </div>
 
         {/* Minimal Footer Attribution Line */}
-        <div className="text-[10px] font-mono-retro text-white/40 tracking-wider">
+        <div className="text-[9px] sm:text-[10px] font-mono-retro text-white/40 tracking-wider">
           contact: kksradio@gmail.com
         </div>
       </footer>
